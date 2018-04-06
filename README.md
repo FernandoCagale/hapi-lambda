@@ -1,9 +1,10 @@
-hapi-lambda
+hapi-lambda-proxy
 -------------
 
-[![npm version](https://badge.fury.io/js/hapi-lambda.svg)](https://badge.fury.io/js/hapi-lambda)
+Compatibility
+Compatible with hapi.js version 17.x
 
-This module will allow you to host your Hapi.js application on Amazon Lambda.
+This module will allow you to host your Hapi.js application on Amazon Lambda. **original [hapi-lambda](https://github.com/carbonrobot/hapi-lambda)**
 
 ## Usage
 
@@ -12,20 +13,21 @@ Your application should already be configured as [plugins](https://hapijs.com/tu
 ```
 // api.js
 
-exports.register = function (server, options, next) {
-    const plugins = [];
+exports.plugin = {
+  name: 'lambda',
+  version: '1.0.0',
+  register: function (server, options) {
 
-    server.register(plugins, () => {
-        server.route({
-            method: 'GET',
-            path: '/',
-            handler: function(request, reply){ reply('OK'); }
-        });
-        return next();
+    server.route({
+      method: 'GET',
+      path: '/test',
+      handler: function (request, h) {
+        return 'hello, world';
+      }
     });
-};
 
-exports.register.attributes = { pkg: { name: 'api', version: '1.0.0' } };
+  }
+};
 ```
 
 Your index.js file that you push to Lambda should look like the following:
@@ -33,7 +35,7 @@ Your index.js file that you push to Lambda should look like the following:
 ```
 // index.js
 
-const hapiLambda = require('hapi-lambda');
+const hapiLambda = require('hapi-lambda-proxy');
 const api = require('./api');
 
 hapiLambda.configure([api]);
@@ -43,3 +45,23 @@ exports.handler = hapiLambda.handler;
 ## Deployment
 
 Deployment is a much larger topic and not covered by this module, however I highly recommend deploying your Lambda application with [Serverless](https://serverless.com/).
+
+```
+// serverless.yml
+
+service: serverless-hapi-lambda-proxy
+
+provider:
+  name: aws
+  runtime: nodejs8.10
+
+functions:
+  api:
+    handler: index.handler
+    events:
+      - http:
+          path: "{proxy+}"
+          method: any
+          cors: true
+
+```
