@@ -5,7 +5,6 @@
 
 const Hapi = require('hapi');
 const server = new Hapi.Server();
-//server.connection(); // no connection details for lambda
 
 // flag so plugsin dont get reconfigured
 let loaded = false;
