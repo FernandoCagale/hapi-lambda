@@ -4,7 +4,7 @@
 'use strict';
 
 const Hapi = require('hapi');
-const server = new Hapi.Server();
+let server;
 
 // flag so plugsin dont get reconfigured
 let loaded = false;
@@ -13,7 +13,11 @@ let loaded = false;
  * Configures the lambda proxy to host hapi.js plugins
  * @param plugins An array of plugins to register
  */
-exports.configure = function(plugins){
+exports.configure = function(plugins, options){
+    if (!server) {
+        server = new Hapi.Server(options);
+    }
+
     if(!plugins) throw 'Plugins must be configured as an array';
     server.makeReady = async function(){
         if(!loaded){
